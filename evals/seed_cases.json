@@ -1,0 +1,141 @@
+[
+  {
+    "id": "odisha-agri-2026",
+    "kind": "gate",
+    "now": "2026-11-20T00:00:00Z",
+    "query": "What are the current agricultural statistics for Odisha in 2026?",
+    "info_type": "government_statistics",
+    "period": "2026",
+    "expect": {
+      "info_type": "government_statistics",
+      "existence": "cannot_exist",
+      "can_exist": false,
+      "action_prefix": "DO_NOT_FETCH"
+    }
+  },
+  {
+    "id": "current-btc-price",
+    "kind": "gate",
+    "now": "2026-11-20T12:00:00Z",
+    "query": "What is the current price of Bitcoin?",
+    "info_type": "financial_market_data",
+    "period": null,
+    "expect": {
+      "info_type": "financial_market_data",
+      "existence": "should_exist",
+      "can_exist": true,
+      "action_prefix": "PROCEED"
+    }
+  },
+  {
+    "id": "latest-react-version",
+    "kind": "gate",
+    "now": "2026-11-20T12:00:00Z",
+    "query": "What is the latest version of React?",
+    "info_type": "software_version",
+    "period": null,
+    "expect": {
+      "info_type": "software_version",
+      "existence": "should_exist",
+      "can_exist": true,
+      "action_prefix": "PROCEED"
+    }
+  },
+  {
+    "id": "latest-defi-tvl",
+    "kind": "pipeline",
+    "now": "2026-11-20T12:00:00Z",
+    "query": "What is the current TVL of this protocol?",
+    "info_type": "blockchain_onchain",
+    "period": null,
+    "urls": [],
+    "expect": {
+      "gated": false,
+      "has_block_warning": true
+    }
+  },
+  {
+    "id": "census-2030",
+    "kind": "gate",
+    "now": "2031-06-01T00:00:00Z",
+    "query": "What does the 2030 national census show?",
+    "info_type": null,
+    "period": "2030",
+    "expect": {
+      "info_type": "national_census_survey",
+      "existence": "cannot_exist",
+      "can_exist": false,
+      "action_prefix": "DO_NOT_FETCH"
+    }
+  },
+  {
+    "id": "unknown-type-needs-classification",
+    "kind": "gate",
+    "now": "2026-11-20T00:00:00Z",
+    "query": "How many widgets did Acme ship?",
+    "info_type": null,
+    "period": null,
+    "expect": {
+      "info_type": "unknown",
+      "can_exist": false,
+      "action_prefix": "NEEDS_INFO_TYPE"
+    }
+  },
+  {
+    "id": "future-data-date-unverifiable",
+    "kind": "staleness",
+    "now": "2026-11-20T00:00:00Z",
+    "data_date": "2027-03-01",
+    "info_type": "government_statistics",
+    "date_basis": "data_as_of",
+    "expect": {
+      "verdict": "unverifiable"
+    }
+  },
+  {
+    "id": "private-ip-ssrf-refused",
+    "kind": "fetch",
+    "url": "http://127.0.0.1:8000/secret",
+    "expect": {
+      "fetched": false,
+      "error_contains": "Blocked"
+    }
+  },
+  {
+    "id": "live-pypi-requests-release",
+    "kind": "fetch",
+    "url": "https://pypi.org/project/requests/",
+    "expect": {
+      "fetched": true,
+      "published_date_present": true,
+      "published_not_equal_accessed": true,
+      "data_as_of_stays_distinct": true
+    }
+  },
+  {
+    "id": "reconcile-verdict-diff-not-conflict",
+    "kind": "reconcile",
+    "records": [
+      {
+        "source": "Registry A",
+        "url": "https://a.example/v",
+        "data_date": "2026-11-15",
+        "verdict": "fresh",
+        "claim": "v2.0",
+        "date_basis": "data_as_of"
+      },
+      {
+        "source": "Mirror B",
+        "url": "https://b.example/v",
+        "data_date": "2026-11-15",
+        "verdict": "stale",
+        "claim": "v2.0",
+        "date_basis": "published"
+      }
+    ],
+    "expect": {
+      "conflict": false,
+      "recommended_source": "Registry A"
+    }
+  }
+]

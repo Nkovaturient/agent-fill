@@ -1,0 +1,4 @@
+-r ../requirements.txt
+# Pinned deliberately: mcp 2.x renamed FastMCP -> MCPServer and breaks imports
+mcp==1.9.4
+pydantic>=2.8,<2.10
