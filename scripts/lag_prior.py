@@ -108,12 +108,16 @@ def classify_information_type(query: str, explicit_info_type: str | None = None)
 
 
 def resolve_period(period_str: str | None, query: str) -> tuple[date | None, str | None]:
-    """Resolve an explicit period ('YYYY', 'YYYY-MM', 'YYYY-MM-DD') or a
-    4-digit year in the query to its period-end date. Returns (None, None)
-    when the query asks for the latest available without naming a period.
+    """Resolve an explicit period ('YYYY', 'YYYY-MM', 'YYYY-MM-DD', or
+    'latest') or a 4-digit year in the query to its period-end date.
+    Returns (None, None) when the query asks for the latest available.
     """
     raw = period_str.strip() if period_str else None
+    if raw and raw.lower() in ("latest", "current", "now"):
+        return None, None
     if not raw:
+        if re.search(r"\b(?:latest|current)\s+(?:version|release|price|rate|tvl)\b", query, re.I):
+            return None, None
         m = re.search(r"\b(19\d{2}|20\d{2}|21\d{2})\b", query)
         if m:
             raw = m.group(1)
@@ -158,6 +162,7 @@ def temporal_prior(
     min_months = int(spec["min_months"])
     typical_months = int(spec["typical_months"])
     max_months = int(spec["max_months"])
+    canonical_registries = spec.get("canonical_registries", [])
 
     expected_latest = current_date - relativedelta(months=typical_months)
     earliest_plausible = current_date - relativedelta(months=min_months)
@@ -176,6 +181,7 @@ def temporal_prior(
             "earliest_plausible_data_date": earliest_plausible.isoformat(),
             "existence": "should_exist",
             "can_exist": True,
+            "canonical_registries": canonical_registries,
             "best_available_hint": (
                 f"Latest complete data for {resolved_type} is typically as of "
                 f"~{expected_latest.isoformat()} (typical lag: {typical_months} months)."
@@ -228,6 +234,7 @@ def temporal_prior(
         "expected_release_date": typical_available_on.isoformat(),
         "existence": existence,
         "can_exist": can_exist,
+        "canonical_registries": canonical_registries,
         "reason": reason,
         "best_available_hint": (
             f"Most recent complete data is typically around {expected_latest.isoformat()} "

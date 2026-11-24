@@ -1,12 +1,16 @@
 # agent-fill
 
-Temporal grounding for LLM agents. Anchors the real date, checks whether
-requested data can exist yet (`cannot_exist` / `may_exist` / `should_exist`),
-fetches and verifies sources with distinct `published_date`, `modified_date`,
-`data_as_of_date`, and `accessed_date`, scores staleness against
-domain-specific lag priors, and emits provenance on every claim.
+Portable temporal grounding skill and MCP server for LLM agents (Claude,
+Cursor, custom runtimes). Anchors the real UTC/local date, gates queries
+against domain publication lags (`cannot_exist` / `may_exist` /
+`should_exist`), fetches and verifies sources with four distinct dates
+(`published_date`, `modified_date`, `data_as_of_date`, `accessed_date`),
+scores staleness, and enforces inline + footer provenance on every
+time-sensitive claim.
 
-See `SKILL.md` for the five-step protocol.
+See [`SKILL.md`](SKILL.md) for the complete 5-step protocol, 3-tier execution
+modes (MCP -> CLI -> Native sandbox fallback), output contracts, worked
+anecdotes, and rationalization counter-tables.
 
 ## Install
 
@@ -18,13 +22,23 @@ pip install -r requirements.txt
 pip install -r mcp_server/requirements.txt
 ```
 
+### Add as a Skill in Cursor or Claude
+
+```bash
+# Cursor (project-scoped)
+mkdir -p .cursor/skills && ln -s /path/to/agent-fill .cursor/skills/agent-fill
+
+# Claude Code / Personal Cursor skill
+mkdir -p ~/.cursor/skills && ln -s /path/to/agent-fill ~/.cursor/skills/agent-fill
+```
+
 ## Run end-to-end pipeline
 
 ```bash
 python scripts/pipeline.py \
   --query "What is the latest version of requests?" \
   --info-type software_version \
-  --url "https://pypi.org/project/requests/"
+  --url "https://pypi.org/pypi/requests/json"
 ```
 
 ## Run individual steps standalone
@@ -32,16 +46,19 @@ python scripts/pipeline.py \
 ```bash
 python scripts/anchor_date.py --tz Asia/Kolkata
 python scripts/lag_prior.py --query "Odisha agricultural statistics 2026" --date 2026-11-20 --info-type government_statistics --period 2026
-python scripts/fetch_and_verify.py --url "https://pypi.org/project/requests/"
+python scripts/fetch_and_verify.py --url "https://pypi.org/pypi/requests/json"
 python scripts/staleness_score.py --data-date 2025-01-01 --current-date 2026-11-20 --info-type government_statistics
-python scripts/provenance.py --source "PyPI" --url "https://pypi.org/project/requests/" --data-date 2026-06-01 --verdict aging --date-basis published
+python scripts/provenance.py --source "PyPI" --url "https://pypi.org/project/requests/" --data-date 2026-05-14 --verdict stale --date-basis published
 ```
 
-## Run eval suite
+## Run eval & pressure-scenario suite
 
 ```bash
 python evals/run_evals.py
 ```
+
+Validates 10 deterministic pipeline cases (`evals/seed_cases.json`) and 5
+LLM behavioral pressure scenarios (`evals/agent_scenarios.json`).
 
 ## Run as MCP server
 

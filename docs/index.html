@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>agent-fill — temporal grounding for AI agents</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #11140F;
+      --bg2: #171B12;
+      --paper: #F6F3EC;
+      --ink: #EDEADF;
+      --ink-dim: #B9B6A8;
+      --rule: #2B2F23;
+      --fresh: #6E8F5F;
+      --aging: #D4B24F;
+      --stale: #C65B46;
+      --unverif: #8A8678;
+      --mono: 'IBM Plex Mono', ui-monospace, monospace;
+      --sans: 'IBM Plex Sans', system-ui, sans-serif;
+      --head: 'Space Grotesk', system-ui, sans-serif;
+      color-scheme: dark;
+    }
+
+    :root:not([data-theme="light"]) {}
+
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) {
+        --bg: #F6F3EC;
+        --bg2: #EEEADD;
+        --paper: #11140F;
+        --ink: #191C14;
+        --ink-dim: #5A5748;
+        --rule: #DAD5C3;
+      }
+    }
+
+    :root[data-theme="light"] {
+      --bg: #F6F3EC;
+      --bg2: #EEEADD;
+      --paper: #11140F;
+      --ink: #191C14;
+      --ink-dim: #5A5748;
+      --rule: #DAD5C3;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      line-height: 1.55;
+    }
+
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    header.top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .brand {
+      font-family: var(--head);
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: .01em;
+    }
+
+    .brand span {
+      color: var(--aging);
+    }
+
+    nav a {
+      color: var(--ink-dim);
+      text-decoration: none;
+      font-size: .92rem;
+      margin-left: 18px;
+    }
+
+    nav a:hover {
+      color: var(--ink);
+    }
+
+    .hero {
+      padding: 72px 0 48px;
+      position: relative;
+    }
+
+    .stamp {
+      position: absolute;
+      top: 4px;
+      right: 0;
+      width: 128px;
+      height: 128px;
+      transform: rotate(-9deg);
+      opacity: .92;
+    }
+
+    h1 {
+      font-family: var(--head);
+      font-weight: 700;
+      font-size: 2.6rem;
+      line-height: 1.12;
+      margin: 0 0 18px;
+      max-width: 11ch;
+    }
+
+    .lede {
+      font-size: 1.1rem;
+      color: var(--ink-dim);
+      max-width: 46ch;
+      margin: 0 0 32px;
+    }
+
+    .fetchbox {
+      background: var(--bg2);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    .fetchbox code {
+      font-family: var(--mono);
+      font-size: .85rem;
+      color: var(--ink);
+      white-space: pre;
+      flex: 1;
+    }
+
+    .copybtn {
+      font-family: var(--sans);
+      font-size: .82rem;
+      background: transparent;
+      color: var(--ink-dim);
+      border: 1px solid var(--rule);
+      border-radius: 3px;
+      padding: 6px 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .copybtn:hover {
+      color: var(--ink);
+      border-color: var(--ink-dim);
+    }
+
+    .copybtn:focus-visible {
+      outline: 2px solid var(--aging);
+      outline-offset: 2px;
+    }
+
+    section {
+      padding: 44px 0;
+      border-top: 1px solid var(--rule);
+    }
+
+    h2 {
+      font-family: var(--head);
+      font-weight: 700;
+      font-size: 1.5rem;
+      margin: 0 0 20px;
+    }
+
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media(min-width:640px) {
+      .compare {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .card {
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 18px 20px;
+      background: var(--bg2);
+    }
+
+    .card.bad {
+      border-left: 3px solid var(--stale);
+    }
+
+    .card.good {
+      border-left: 3px solid var(--fresh);
+    }
+
+    .card p {
+      margin: 0;
+      font-size: .94rem;
+    }
+
+    .card .tag {
+      font-family: var(--mono);
+      font-size: .72rem;
+      color: var(--ink-dim);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .steps {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      counter-reset: step;
+    }
+
+    .steps li {
+      counter-increment: step;
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 14px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .steps li:last-child {
+      border-bottom: none;
+    }
+
+    .steps li::before {
+      content: counter(step);
+      font-family: var(--head);
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--aging);
+    }
+
+    .steps strong {
+      display: block;
+      font-family: var(--head);
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .steps span {
+      color: var(--ink-dim);
+      font-size: .92rem;
+    }
+
+    .verdicts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      font-family: var(--mono);
+      font-size: .82rem;
+      padding: 7px 14px;
+      border-radius: 999px;
+      border: 1px solid currentColor;
+    }
+
+    .chip.fresh {
+      color: var(--fresh);
+    }
+
+    .chip.aging {
+      color: var(--aging);
+    }
+
+    .chip.stale {
+      color: var(--stale);
+    }
+
+    .chip.unverif {
+      color: var(--unverif);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 2px;
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 0;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      font-family: var(--sans);
+      font-size: .88rem;
+      background: none;
+      border: none;
+      color: var(--ink-dim);
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab[aria-selected="true"] {
+      color: var(--ink);
+      border-bottom-color: var(--aging);
+    }
+
+    .tab:focus-visible {
+      outline: 2px solid var(--aging);
+      outline-offset: 2px;
+    }
+
+    .panel {
+      display: none;
+      background: var(--bg2);
+      border: 1px solid var(--rule);
+      border-top: none;
+      padding: 18px 20px;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .panel pre {
+      margin: 0;
+      font-family: var(--mono);
+      font-size: .82rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    footer {
+      padding: 40px 0 60px;
+      color: var(--ink-dim);
+      font-size: .88rem;
+    }
+
+    footer a {
+      color: var(--ink-dim);
+    }
+  </style>
+</head>
+
+<body>
+  <header class="top">
+    <div class="brand">agent<span>.</span>fill</div>
+    <nav>
+      <a href="#protocol">Protocol</a>
+      <a href="#live-proof">Live Output</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/Nkovaturient/agent-fill">GitHub</a>
+    </nav>
+  </header>
+
+  <div class="wrap">
+    <section class="hero">
+      <svg class="stamp" viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="var(--fresh)" stroke-width="3" />
+        <circle cx="60" cy="60" r="44" fill="none" stroke="var(--fresh)" stroke-width="1.5" />
+        <text x="60" y="54" text-anchor="middle" font-family="IBM Plex Mono" font-size="11"
+          fill="var(--fresh)">VERIFIED</text>
+        <text x="60" y="70" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="var(--fresh)">AS OF
+          TODAY</text>
+      </svg>
+      <h1>Your agent's facts have an expiration date.</h1>
+      <p class="lede">agent-fill checks the date before your agent answers — so it stops serving year-old statistics,
+        cached prices, and dead software versions as if they were current.</p>
+      <div class="fetchbox">
+        <code
+          id="fetchline">Fetch SKILL.md from agent-fill and run its five steps before answering anything time-sensitive.</code>
+        <button class="copybtn" onclick="copyFetch()" id="copybtn">Copy</button>
+      </div>
+    </section>
+
+    <section id="problem">
+      <h2>The gap this closes</h2>
+      <div class="compare">
+        <div class="card bad">
+          <span class="tag">without agent-fill</span>
+          <p>"Odisha's 2026 agricultural statistics show a 4% rise in rice yield." — confident, sourceless, and the 2026
+            data doesn't exist yet.</p>
+        </div>
+        <div class="card good">
+          <span class="tag">with agent-fill</span>
+          <p>"2026 data isn't published yet (typical lag: 12 months). Latest available: the 2024–25 cycle, released late
+            2025." — honest, dated, checkable.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="protocol">
+      <h2>Five steps, run in order</h2>
+      <ol class="steps">
+        <li>
+          <div><strong>Anchor</strong><span>Read the real UTC clock, plus an optional local timezone. Never trust the
+              model's belief about "today."</span></div>
+        </li>
+        <li>
+          <div><strong>Prior</strong><span>Pass info_type and period explicitly. Look up min and typical lag plus
+              canonical_registries. cannot_exist stops the fetch and cites official registries; may_exist and
+              should_exist proceed.</span></div>
+        </li>
+        <li>
+          <div><strong>Fetch</strong><span>Resolve exact primary URLs (JSON APIs, official registries) over public
+              http/https. Keep published, modified, data-as-of, and accessed dates separate.</span></div>
+        </li>
+        <li>
+          <div><strong>Score</strong><span>Rate the source date against that type's lag window. A future date is
+              unverifiable. Scoring on the published date is an upper bound.</span></div>
+        </li>
+        <li>
+          <div><strong>Cite</strong><span>Emit Contract A (inline stamp + clickable Provenance footer with block_number
+              for on-chain state) or Contract B (gap response with canonical registry links).</span></div>
+        </li>
+      </ol>
+      <div style="height:20px"></div>
+      <div class="verdicts">
+        <span class="chip fresh">fresh</span>
+        <span class="chip aging">aging</span>
+        <span class="chip stale">stale</span>
+        <span class="chip unverif">unverifiable</span>
+      </div>
+      <div class="verdicts" style="margin-top:10px">
+        <span class="chip stale">cannot_exist</span>
+        <span class="chip aging">may_exist</span>
+        <span class="chip fresh">should_exist</span>
+      </div>
+    </section>
+
+    <section id="live-proof">
+      <h2>Live output contract</h2>
+      <div class="card good" style="font-family:var(--mono); font-size:.82rem; line-height:1.6;">
+        <span class="tag">/agent-fill Quick: what's the current TVL and ETH borrow rate on Aave v3 Ethereum mainnet?</span>
+        <p style="margin-bottom:10px;">
+          <strong>TVL (DefiLlama):</strong> ~$12.86B [data as of 2026-11-24 ~16:56 UTC — <span style="color:var(--aging)">aging</span> for live chain]<br>
+          <strong>ETH borrow rate (WETH variable APY):</strong> 1.99% [indexed ~2026-11-24, accessed 2026-11-24 — <span style="color:var(--fresh)">fresh</span>; block #26,486,597]
+        </p>
+        <p style="color:var(--ink-dim);">
+          <strong>Provenance</strong><br>
+          • Claim: Aave v3 Ethereum TVL ≈ $12.86B · Source: <a href="https://defillama.com/protocol/aave-v3" style="color:var(--ink)">DefiLlama — Aave V3</a> · <code>data_as_of=2026-11-24 | accessed=2026-11-24 (date_basis=data_as_of)</code> · Verdict: <code>aging</code><br>
+          • Claim: WETH variable borrow APY = 1.99% · Source: <a href="https://app.aave.com" style="color:var(--ink)">Aave v3 GraphQL API</a> (pool <code>0x8787…4fa4e2</code>, chainId 1) · <code>block_number=26486597</code> · Verdict: <code>fresh</code>
+        </p>
+      </div>
+    </section>
+
+    <section id="install">
+      <h2>Install</h2>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" onclick="showTab('claude')">Claude</button>
+        <button class="tab" role="tab" aria-selected="false" onclick="showTab('cursor')">Cursor</button>
+        <button class="tab" role="tab" aria-selected="false" onclick="showTab('mcp')">MCP server</button>
+        <button class="tab" role="tab" aria-selected="false" onclick="showTab('scripts')">Scripts</button>
+      </div>
+      <div class="panel active" id="panel-claude">
+        <pre>git clone https://github.com/Nkovaturient/agent-fill.git
+mkdir -p ~/.claude/skills
+ln -s "$(pwd)/agent-fill" ~/.claude/skills/agent-fill
+
+# Optional: register MCP server in Claude Code
+claude mcp add agent-fill -- \
+  "$(pwd)/agent-fill/mcp_server/.venv/bin/python" \
+  "$(pwd)/agent-fill/mcp_server/server.py"</pre>
+      </div>
+      <div class="panel" id="panel-cursor">
+        <pre>mkdir -p .cursor/skills
+ln -s /abs/path/to/agent-fill .cursor/skills/agent-fill
+
+# .cursor/mcp.json
+{
+  "mcpServers": {
+    "agent-fill": {
+      "command": "/abs/path/to/agent-fill/mcp_server/.venv/bin/python",
+      "args": ["/abs/path/to/agent-fill/mcp_server/server.py"]
+    }
+  }
+}</pre>
+      </div>
+      <div class="panel" id="panel-mcp">
+        <pre>python3 -m venv mcp_server/.venv
+mcp_server/.venv/bin/pip install -r mcp_server/requirements.txt
+mcp_server/.venv/bin/python mcp_server/server.py
+
+# Pinned: mcp==1.9.4, pydantic&lt;2.10 (mcp 2.x renamed FastMCP)
+# 7 tools: run_pipeline, anchor_date, check_temporal_prior,
+# fetch_source, score_staleness, make_provenance, reconcile_sources</pre>
+      </div>
+      <div class="panel" id="panel-scripts">
+        <pre>pip install -r requirements.txt
+
+python scripts/pipeline.py \
+  --query "What is the latest version of requests?" \
+  --info-type software_version \
+  --url "https://pypi.org/pypi/requests/json"
+
+python scripts/anchor_date.py --tz Asia/Kolkata
+python scripts/lag_prior.py --query "Odisha agri stats 2026" \
+  --date 2026-11-24 --info-type government_statistics --period 2026
+python scripts/staleness_score.py --data-date 2025-03-01 \
+  --current-date 2026-11-24 --info-type government_statistics --date-basis data_as_of
+python scripts/provenance.py --source "RBI DBIE" \
+  --url "https://data.rbi.org.in" --data-date 2025-03-01 --verdict stale --date-basis data_as_of
+
+python evals/run_evals.py  # 15/15 gate, fetch &amp; pressure evals</pre>
+      </div>
+    </section>
+
+    <footer align="center">
+      MIT License · <a href="https://github.com/Nkovaturient/agent-fill">Give us a star!</a>
+    </footer>
+  </div>
+
+  <script>
+    function showTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', 'false'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      event.target.setAttribute('aria-selected', 'true');
+      document.getElementById('panel-' + name).classList.add('active');
+    }
+    function copyFetch() {
+      const text = document.getElementById('fetchline').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copybtn');
+        const orig = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(() => { btn.textContent = orig; }, 1500);
+      }).catch(() => { });
+    }
+  </script>
+</body>
+
+</html>

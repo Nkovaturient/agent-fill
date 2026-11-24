@@ -104,7 +104,7 @@
   {
     "id": "live-pypi-requests-release",
     "kind": "fetch",
-    "url": "https://pypi.org/project/requests/",
+    "url": "https://pypi.org/pypi/requests/json",
     "expect": {
       "fetched": true,
       "published_date_present": true,

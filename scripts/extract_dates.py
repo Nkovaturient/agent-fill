@@ -89,6 +89,48 @@ def extract_dates(
     data_as_of_date: str | None = None
     date_sources: dict[str, str] = {}
 
+    stripped_body = (html_or_text or "").strip()
+    if stripped_body.startswith("{") or stripped_body.startswith("["):
+        try:
+            json_doc = json.loads(stripped_body)
+        except (ValueError, TypeError):
+            json_doc = None
+        if isinstance(json_doc, dict):
+            # PyPI JSON API: urls[*].upload_time_iso_8601 or releases[ver][*].upload_time_iso_8601
+            urls_list = json_doc.get("urls")
+            if isinstance(urls_list, list) and urls_list:
+                upload_times = [
+                    _try_parse_iso_date(u.get("upload_time_iso_8601") or u.get("upload_time"))
+                    for u in urls_list
+                    if isinstance(u, dict)
+                ]
+                upload_times = [t for t in upload_times if t]
+                if upload_times:
+                    published_date = max(upload_times)
+                    date_sources["published_date"] = "json:pypi.urls.upload_time_iso_8601"
+            for obj in _iter_jsonld_objects(json_doc):
+                if published_date is None:
+                    for k in ("published_at", "published_date", "release_date", "created_at", "datePublished", "upload_time_iso_8601"):
+                        parsed = _try_parse_iso_date(obj.get(k))
+                        if parsed:
+                            published_date = parsed
+                            date_sources["published_date"] = f"json:{k}"
+                            break
+                if modified_date is None:
+                    for k in ("updated_at", "modified_date", "last_modified", "dateModified"):
+                        parsed = _try_parse_iso_date(obj.get(k))
+                        if parsed:
+                            modified_date = parsed
+                            date_sources["modified_date"] = f"json:{k}"
+                            break
+                if data_as_of_date is None:
+                    for k in ("data_as_of", "as_of", "reference_period", "observation_date"):
+                        parsed = _try_parse_iso_date(obj.get(k))
+                        if parsed:
+                            data_as_of_date = parsed
+                            date_sources["data_as_of_date"] = f"json:{k}"
+                            break
+
     soup = BeautifulSoup(html_or_text or "", "html.parser")
 
     # 1. Meta tags (attribute-order independent)

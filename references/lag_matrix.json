@@ -4,69 +4,120 @@
     "typical_months": 0,
     "max_months": 0,
     "fresh_window_seconds": 86400,
-    "notes": "self-correcting, low single-source trust"
+    "notes": "self-correcting, low single-source trust",
+    "canonical_registries": [
+      {"name": "Reuters Wire", "url": "https://www.reuters.com"},
+      {"name": "Associated Press", "url": "https://apnews.com"},
+      {"name": "Press Information Bureau (India)", "url": "https://pib.gov.in"}
+    ]
   },
   "financial_market_data": {
     "min_months": 0,
     "typical_months": 0,
     "max_months": 0,
     "fresh_window_seconds": 60,
-    "notes": "treat anything >1min old as stale for trading"
+    "notes": "treat anything >1min old as stale for trading",
+    "canonical_registries": [
+      {"name": "Reserve Bank of India (DBIE)", "url": "https://data.rbi.org.in"},
+      {"name": "Federal Reserve Economic Data (FRED)", "url": "https://fred.stlouisfed.org"},
+      {"name": "CoinGecko Public API", "url": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_last_updated_at=true"}
+    ]
   },
   "blockchain_onchain": {
     "min_months": 0,
     "typical_months": 0,
     "max_months": 0,
     "fresh_window_seconds": 60,
-    "notes": "always stamp with block number, not 'current'"
+    "notes": "always stamp with block number, not 'current'",
+    "canonical_registries": [
+      {"name": "DefiLlama Protocol API", "url": "https://api.llama.fi/protocols"},
+      {"name": "Etherscan Mainnet Explorer", "url": "https://etherscan.io"},
+      {"name": "Ethereum Beaconcha.in", "url": "https://beaconcha.in"}
+    ]
   },
   "software_version": {
     "min_months": 0,
     "typical_months": 1,
     "max_months": 1,
     "fresh_window_seconds": null,
-    "notes": "check registry/release page, not memory"
+    "notes": "check registry/release page, not memory",
+    "canonical_registries": [
+      {"name": "PyPI JSON Registry", "url": "https://pypi.org/pypi/<package>/json"},
+      {"name": "npm Registry API", "url": "https://registry.npmjs.org/<package>/latest"},
+      {"name": "Crates.io API", "url": "https://crates.io/api/v1/crates/<crate>"},
+      {"name": "GitHub Releases API", "url": "https://api.github.com/repos/<owner>/<repo>/releases/latest"}
+    ]
   },
   "corporate_filings": {
     "min_months": 1,
     "typical_months": 3,
     "max_months": 3,
     "fresh_window_seconds": null,
-    "notes": "SEC/exchange filings (1.5-3 months)"
+    "notes": "SEC/exchange filings (1.5-3 months)",
+    "canonical_registries": [
+      {"name": "SEC EDGAR Company Search", "url": "https://www.sec.gov/edgar/searchedgar/companysearch"},
+      {"name": "NSE India Corporate Filings", "url": "https://www.nseindia.com/companies-listing/corporate-filings-announcements"},
+      {"name": "BSE India Announcements", "url": "https://www.bseindia.com/corporates/ann.html"}
+    ]
   },
   "healthcare_policy": {
     "min_months": 3,
     "typical_months": 6,
     "max_months": 12,
     "fresh_window_seconds": null,
-    "notes": "clinical guidelines, drug approvals"
+    "notes": "clinical guidelines, drug approvals",
+    "canonical_registries": [
+      {"name": "WHO Publications & Guidelines", "url": "https://www.who.int/publications"},
+      {"name": "U.S. FDA Drugs@FDA", "url": "https://www.accessdata.fda.gov/scripts/cder/daf/"},
+      {"name": "ICMR Clinical Guidelines (India)", "url": "https://www.icmr.gov.in"}
+    ]
   },
   "government_statistics": {
     "min_months": 6,
     "typical_months": 12,
     "max_months": 18,
     "fresh_window_seconds": null,
-    "notes": "varies heavily by country/agency"
+    "notes": "varies heavily by country/agency",
+    "canonical_registries": [
+      {"name": "MoSPI (Ministry of Statistics & Programme Implementation, India)", "url": "https://www.mospi.gov.in"},
+      {"name": "Directorate of Economics & Statistics, Odisha", "url": "https://desorissa.nic.in"},
+      {"name": "Data.gov.in Open Government Data", "url": "https://www.data.gov.in"},
+      {"name": "World Bank Open Data", "url": "https://data.worldbank.org"}
+    ]
   },
   "academic_papers": {
     "min_months": 12,
     "typical_months": 18,
     "max_months": 36,
     "fresh_window_seconds": null,
-    "notes": "peer review lag; preprints are faster but unverified"
+    "notes": "peer review lag; preprints are faster but unverified",
+    "canonical_registries": [
+      {"name": "Crossref REST API", "url": "https://api.crossref.org/works"},
+      {"name": "arXiv Preprint Server", "url": "https://arxiv.org"},
+      {"name": "PubMed NCBI", "url": "https://pubmed.ncbi.nlm.nih.gov"}
+    ]
   },
   "national_census_survey": {
     "min_months": 60,
     "typical_months": 84,
     "max_months": 120,
     "fresh_window_seconds": null,
-    "notes": "multi-year processing lag"
+    "notes": "multi-year processing lag",
+    "canonical_registries": [
+      {"name": "Office of the Registrar General & Census Commissioner, India", "url": "https://censusindia.gov.in"},
+      {"name": "U.S. Census Bureau Data", "url": "https://data.census.gov"},
+      {"name": "UN Data Population Censuses", "url": "https://data.un.org"}
+    ]
   },
   "reference_textbook": {
     "min_months": 120,
     "typical_months": 180,
     "max_months": 240,
     "fresh_window_seconds": null,
-    "notes": "fine for timeless facts, risky for fast fields"
+    "notes": "fine for timeless facts, risky for fast fields",
+    "canonical_registries": [
+      {"name": "OpenAlex Works Catalog", "url": "https://api.openalex.org/works"},
+      {"name": "NCBI Bookshelf", "url": "https://www.ncbi.nlm.nih.gov/books"}
+    ]
   }
 }

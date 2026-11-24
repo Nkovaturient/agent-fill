@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Executable regression runner for evals/seed_cases.json."""
+"""Executable regression runner for evals/seed_cases.json and
+evals/agent_scenarios.json."""
 import json
 import os
 import sys
@@ -104,25 +105,62 @@ def _run_case(case: dict) -> tuple[bool, str]:
     return False, f"Unknown eval kind '{kind}'"
 
 
+def _run_agent_scenario(scenario: dict) -> tuple[bool, str]:
+    exp = scenario["expected_agent_behavior"]
+    cd = date.fromisoformat(scenario["now"][:10])
+    prior = temporal_prior(
+        query=scenario["user_prompt"],
+        current_date=cd,
+        info_type=exp["info_type"],
+        period=exp.get("period"),
+    )
+    if prior.get("existence") != exp["gate_existence"]:
+        return (
+            False,
+            f"gate_existence={prior.get('existence')} != {exp['gate_existence']}",
+        )
+    registries = prior.get("canonical_registries") or []
+    if not registries or not all(r.get("url", "").startswith("https://") for r in registries):
+        return False, "missing or invalid canonical_registries URLs in temporal_prior output"
+    if not exp.get("required_contract") or not isinstance(exp.get("required_elements"), list):
+        return False, "missing required_contract or required_elements"
+    return (
+        True,
+        f"[{scenario['failure_mode']}] gate={prior.get('existence')}, registries={len(registries)} -> {exp['required_contract']}",
+    )
+
+
 def main():
     cases_path = os.path.join(ROOT, "evals", "seed_cases.json")
+    scenarios_path = os.path.join(ROOT, "evals", "agent_scenarios.json")
     with open(cases_path, "r", encoding="utf-8") as f:
         cases = json.load(f)
+    with open(scenarios_path, "r", encoding="utf-8") as f:
+        scenarios = json.load(f)
 
     passed = 0
     failed = 0
-    print(f"{'CASE ID':<36} {'STATUS':<8} DETAILS")
-    print("-" * 92)
+    print(f"{'CASE ID':<38} {'STATUS':<8} DETAILS")
+    print("-" * 96)
     for c in cases:
         ok, detail = _run_case(c)
         status = "PASS" if ok else "FAIL"
-        print(f"{c['id']:<36} {status:<8} {detail}")
+        print(f"{c['id']:<38} {status:<8} {detail}")
         if ok:
             passed += 1
         else:
             failed += 1
 
-    print("-" * 92)
+    for s in scenarios:
+        ok, detail = _run_agent_scenario(s)
+        status = "PASS" if ok else "FAIL"
+        print(f"{s['id']:<38} {status:<8} {detail}")
+        if ok:
+            passed += 1
+        else:
+            failed += 1
+
+    print("-" * 96)
     print(f"Total: {passed + failed} | Passed: {passed} | Failed: {failed}")
     if failed:
         sys.exit(1)
