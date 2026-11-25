@@ -1,6 +1,9 @@
 # agent-fill
 
+[![Release](https://img.shields.io/github/v/release/Nkovaturient/agent-fill?label=release)](https://github.com/Nkovaturient/agent-fill/releases)
 [![Evals](https://github.com/Nkovaturient/agent-fill/actions/workflows/evals.yml/badge.svg)](https://github.com/Nkovaturient/agent-fill/actions/workflows/evals.yml)
+
+Current package version **v0.1.0** (see [`pyproject.toml`](pyproject.toml)). Release notes: [`CHANGELOG.md`](CHANGELOG.md) · [GitHub Releases](https://github.com/Nkovaturient/agent-fill/releases).
 
 Portable temporal grounding skill and MCP server for LLM agents (Claude,
 Cursor, custom runtimes). Anchors the real UTC/local date, gates queries
@@ -50,12 +53,14 @@ pip install -r mcp_server/requirements.txt
 
 ### Add as a Skill in Cursor or Claude
 
+Maintainers: full symlink, MCP `mcp.json`, Claude `mcp add`, and directory listing checklist — [`docs/REGISTRY.md`](docs/REGISTRY.md).
+
 ```bash
 # Cursor (project-scoped)
 mkdir -p .cursor/skills && ln -s /path/to/agent-fill .cursor/skills/agent-fill
 
-# Claude Code / Personal Cursor skill
-mkdir -p ~/.cursor/skills && ln -s /path/to/agent-fill ~/.cursor/skills/agent-fill
+# Claude Code skill
+mkdir -p ~/.claude/skills && ln -s /path/to/agent-fill ~/.claude/skills/agent-fill
 ```
 
 ## Run end-to-end pipeline
