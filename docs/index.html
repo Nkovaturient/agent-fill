@@ -135,6 +135,27 @@
       margin: 0 0 32px;
     }
 
+    .meta-release {
+      font-size: .92rem;
+      color: var(--ink-dim);
+      margin: 0 0 20px;
+    }
+
+    .meta-release a {
+      color: var(--ink);
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 24px;
+    }
+
+    .badges img {
+      height: 22px;
+    }
+
     .fetchbox {
       background: var(--bg2);
       border: 1px solid var(--rule);
@@ -369,6 +390,7 @@
       <a href="#protocol">Protocol</a>
       <a href="#live-proof">Live Output</a>
       <a href="#install">Install</a>
+      <a href="#release">Release</a>
       <a href="https://github.com/Nkovaturient/agent-fill">GitHub</a>
     </nav>
   </header>
@@ -384,8 +406,22 @@
           TODAY</text>
       </svg>
       <h1>Your agent's facts have an expiration date.</h1>
-      <p class="lede">agent-fill checks the date before your agent answers — so it stops serving year-old statistics,
-        cached prices, and dead software versions as if they were current.</p>
+      <p class="lede">Portable temporal grounding skill and MCP server for LLM agents. Anchors the real UTC clock,
+        gates queries on publication lag, fetches sources, scores staleness, and enforces provenance on
+        time-sensitive claims. Full protocol: <a href="https://github.com/Nkovaturient/agent-fill/blob/main/SKILL.md"
+          style="color:var(--ink)">SKILL.md</a>.</p>
+      <div class="badges">
+        <a href="https://github.com/Nkovaturient/agent-fill/releases"><img
+            src="https://img.shields.io/github/v/release/Nkovaturient/agent-fill?label=release" alt="release badge"></a>
+        <a href="https://github.com/Nkovaturient/agent-fill/actions/workflows/evals.yml"><img
+            src="https://github.com/Nkovaturient/agent-fill/actions/workflows/evals.yml/badge.svg" alt="evals badge"></a>
+      </div>
+      <p class="meta-release" id="release">Package <strong>v0.1.0</strong> (<a
+          href="https://github.com/Nkovaturient/agent-fill/blob/main/pyproject.toml">pyproject.toml</a>) · <a
+          href="https://github.com/Nkovaturient/agent-fill/blob/main/CHANGELOG.md">CHANGELOG</a> · <a
+          href="https://github.com/Nkovaturient/agent-fill/releases">GitHub Releases</a> · Maintainer install checklist:
+        <a href="https://github.com/Nkovaturient/agent-fill/blob/main/docs/REGISTRY.md">docs/REGISTRY.md</a>
+      </p>
       <div class="fetchbox">
         <code
           id="fetchline">Fetch SKILL.md from agent-fill and run its five steps before answering anything time-sensitive.</code>
@@ -467,12 +503,26 @@
     <section id="install">
       <h2>Install</h2>
       <div class="tabs" role="tablist">
-        <button class="tab" role="tab" aria-selected="true" onclick="showTab('claude')">Claude</button>
+        <button class="tab" role="tab" aria-selected="true" onclick="showTab('pypi')">PyPI / package</button>
+        <button class="tab" role="tab" aria-selected="false" onclick="showTab('claude')">Claude</button>
         <button class="tab" role="tab" aria-selected="false" onclick="showTab('cursor')">Cursor</button>
         <button class="tab" role="tab" aria-selected="false" onclick="showTab('mcp')">MCP server</button>
-        <button class="tab" role="tab" aria-selected="false" onclick="showTab('scripts')">Scripts</button>
+        <button class="tab" role="tab" aria-selected="false" onclick="showTab('scripts')">Scripts &amp; evals</button>
       </div>
-      <div class="panel active" id="panel-claude">
+      <div class="panel active" id="panel-pypi">
+        <pre>pip install .                    # core CLI + pipeline scripts in the wheel
+pip install '.[mcp]'             # MCP deps (mcp==1.9.4, pydantic&lt;2.10)
+
+pip install -e .
+pip install -e '.[mcp]'
+
+# Console entry points: agent-fill, agent-fill-mcp
+# Module form: python -m agent_fill
+
+uvx --from git+https://github.com/Nkovaturient/agent-fill agent-fill -- --help
+pipx run --spec git+https://github.com/Nkovaturient/agent-fill agent-fill -- --help</pre>
+      </div>
+      <div class="panel" id="panel-claude">
         <pre>git clone https://github.com/Nkovaturient/agent-fill.git
 mkdir -p ~/.claude/skills
 ln -s "$(pwd)/agent-fill" ~/.claude/skills/agent-fill
@@ -483,7 +533,10 @@ claude mcp add agent-fill -- \
   "$(pwd)/agent-fill/mcp_server/server.py"</pre>
       </div>
       <div class="panel" id="panel-cursor">
-        <pre>mkdir -p .cursor/skills
+        <pre># Full symlink + MCP mcp.json checklist:
+# https://github.com/Nkovaturient/agent-fill/blob/main/docs/REGISTRY.md
+
+mkdir -p .cursor/skills
 ln -s /abs/path/to/agent-fill .cursor/skills/agent-fill
 
 # .cursor/mcp.json
@@ -497,7 +550,13 @@ ln -s /abs/path/to/agent-fill .cursor/skills/agent-fill
 }</pre>
       </div>
       <div class="panel" id="panel-mcp">
-        <pre>python3 -m venv mcp_server/.venv
+        <pre>pip install '.[mcp]'
+agent-fill-mcp
+# or: python -m agent_fill.mcp_stdio
+# or: python mcp_server/server.py
+
+# Contributor venv path:
+python3 -m venv mcp_server/.venv
 mcp_server/.venv/bin/pip install -r mcp_server/requirements.txt
 mcp_server/.venv/bin/python mcp_server/server.py
 
@@ -506,27 +565,34 @@ mcp_server/.venv/bin/python mcp_server/server.py
 # fetch_source, score_staleness, make_provenance, reconcile_sources</pre>
       </div>
       <div class="panel" id="panel-scripts">
-        <pre>pip install -r requirements.txt
+        <pre>pip install -r requirements.txt   # contributor requirements.txt workflow
 
 python scripts/pipeline.py \
   --query "What is the latest version of requests?" \
   --info-type software_version \
   --url "https://pypi.org/pypi/requests/json"
+# or: agent-fill --query "..." --info-type software_version --url "..."
 
 python scripts/anchor_date.py --tz Asia/Kolkata
 python scripts/lag_prior.py --query "Odisha agri stats 2026" \
   --date 2026-11-24 --info-type government_statistics --period 2026
+python scripts/fetch_and_verify.py --url "https://pypi.org/pypi/requests/json"
 python scripts/staleness_score.py --data-date 2025-03-01 \
   --current-date 2026-11-24 --info-type government_statistics --date-basis data_as_of
 python scripts/provenance.py --source "RBI DBIE" \
   --url "https://data.rbi.org.in" --data-date 2025-03-01 --verdict stale --date-basis data_as_of
 
-python evals/run_evals.py  # 15/15 gate, fetch &amp; pressure evals</pre>
+python evals/run_evals.py
+# 10 deterministic cases (evals/seed_cases.json) +
+# 5 behavioral pressure scenarios (evals/agent_scenarios.json)</pre>
       </div>
     </section>
 
     <footer align="center">
-      MIT License · <a href="https://github.com/Nkovaturient/agent-fill">Give us a star!</a>
+      <a href="https://github.com/Nkovaturient/agent-fill/blob/main/LICENSE">MIT License</a> ·
+      <a href="https://github.com/Nkovaturient/agent-fill/blob/main/CHANGELOG.md">CHANGELOG</a> ·
+      <a href="https://github.com/Nkovaturient/agent-fill/blob/main/docs/REGISTRY.md">REGISTRY</a> ·
+      <a href="https://github.com/Nkovaturient/agent-fill">Give us a star!</a>
     </footer>
   </div>
 
