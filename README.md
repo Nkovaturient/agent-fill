@@ -1,5 +1,7 @@
 # agent-fill
 
+[![Evals](https://github.com/Nkovaturient/agent-fill/actions/workflows/evals.yml/badge.svg)](https://github.com/Nkovaturient/agent-fill/actions/workflows/evals.yml)
+
 Portable temporal grounding skill and MCP server for LLM agents (Claude,
 Cursor, custom runtimes). Anchors the real UTC/local date, gates queries
 against domain publication lags (`cannot_exist` / `may_exist` /
@@ -11,6 +13,8 @@ time-sensitive claim.
 See [`SKILL.md`](SKILL.md) for the complete 5-step protocol, 3-tier execution
 modes (MCP -> CLI -> Native sandbox fallback), output contracts, worked
 anecdotes, and rationalization counter-tables.
+
+**Docs:** When [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site) is enabled for this repo, the live site is at [https://nkovaturient.github.io/agent-fill/](https://nkovaturient.github.io/agent-fill/) (served from [`docs/`](docs/index.html) on branch `main`). Enable it once: **Settings → Pages → Build and deployment → Source:** Deploy from a branch → **Branch:** `main` → **Folder:** `/docs` → Save.
 
 ## Install
 
