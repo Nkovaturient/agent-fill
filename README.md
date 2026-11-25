@@ -18,11 +18,33 @@ anecdotes, and rationalization counter-tables.
 
 ## Install
 
+**PyPI-style (recommended for one-command use):**
+
 ```bash
-# Standalone CLI scripts
+pip install .                    # core CLI + pipeline scripts bundled in the wheel
+pip install '.[mcp]'             # adds MCP server deps (mcp==1.9.4, pydantic<2.10; see pyproject.toml)
+
+# Editable checkout
+pip install -e .
+pip install -e '.[mcp]'
+```
+
+Console entry points: `agent-fill` (same as `python scripts/pipeline.py`) and
+`agent-fill-mcp` (stdio MCP server). Module form: `python -m agent_fill`.
+
+**Run without a local clone** (after the package is published or from Git):
+
+```bash
+uvx --from git+https://github.com/Nkovaturient/agent-fill agent-fill -- --help
+pipx run --spec git+https://github.com/Nkovaturient/agent-fill agent-fill -- --help
+```
+
+**Contributor / requirements.txt workflow** (unchanged):
+
+```bash
 pip install -r requirements.txt
 
-# Including the MCP server (pins mcp==1.9.4 / pydantic<2.10)
+# MCP server only (same pins as pip install '.[mcp]')
 pip install -r mcp_server/requirements.txt
 ```
 
